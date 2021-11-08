@@ -1,0 +1,16 @@
+*.tar
+*.tar.*
+*.jar
+*.exe
+*.msi
+*.zip
+*.tgz
+*.log
+*.log.*
+*.sig
+moonraker.conf
+mooncord.json
+
+auto_save/
+pkg/
+src/
