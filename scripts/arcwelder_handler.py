@@ -22,7 +22,7 @@ log_location = '/tmp/arc_welder.log'
 # Set up the log file
 logging.basicConfig(
     filename=log_location,
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='[%(asctime)s] %(levelname)s - %(message)s'
 )
 log = logging.getLogger('ArcWelder')
@@ -44,11 +44,12 @@ def arc_welder(source_file, des_file):
         log_subprocess_output(arc_process.stdout)
     exitcode = arc_process.wait()
     log.info(f"ArcWelder exit code: {exitcode}")
-    if exitcode == 0:
-        log.info(f"Deleting source file: {source_file}")
-        os.remove(source_file)
-    else:
-        log.error(f"ArcWlder Failed! Exit code: {exitcode}")
+    #if exitcode == 0:
+        #time.sleep(5)
+        #log.info(f"Deleting source file: {source_file}")
+        #os.remove(source_file)
+    #else:
+        #log.error(f"ArcWlder Failed! Exit code: {exitcode}")
 
 def on_closed(event):
     log.info(f"Proccessing {event.src_path}")
