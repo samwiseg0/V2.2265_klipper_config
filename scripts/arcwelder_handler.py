@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 path = '/home/pi/gcode_files'
-go_recursively = True
+go_recursively = False
 patterns = ['*.gcode']
 ignore_patterns = ['*.arc.gcode']
 ignore_directories = False
@@ -50,7 +50,7 @@ def arc_welder(source_file, des_file):
     else:
         log.error(f"ArcWlder Failed! Exit code: {exitcode}")
 
-def arc_trigger(event):
+def on_closed(event):
     log.info(f"Proccessing {event.src_path}")
     arc_welder(f"{event.src_path}", append_filename(event.src_path))
 
@@ -58,8 +58,8 @@ if __name__ == "__main__":
     log.info("Starting ArcWelder Hander...")
     file_watch = PatternMatchingEventHandler(patterns, ignore_patterns, ignore_directories, case_sensitive)
     ## TRIGGERS
-    file_watch.on_closed = arc_trigger
-    file_watch.on_moved = arc_trigger
+    file_watch.on_any_event = on_closed
+    #file_watch.on_moved = arc_trigger
     file_observer.schedule(file_watch, path, recursive=go_recursively)
     file_observer.start()
     try:
