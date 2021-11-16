@@ -35,7 +35,7 @@ def append_arc(filename):
 
 def arc_welder(source_file, des_file):
     time.sleep(1)
-    command = f"{arc_welder_location} {source_file} {des_file}"
+    command = f"\042{arc_welder_location}\042 \042{source_file}\042 \042{des_file}\042"
     log.info("Spawning command:{}".format(command))
     arc_process = Popen(command, stdout=PIPE, stderr=STDOUT, shell=True)
     with arc_process.stdout:
