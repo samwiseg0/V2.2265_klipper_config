@@ -29,10 +29,6 @@ log = logging.getLogger('ArcWelder')
 
 file_observer = Observer()
 
-def log_subprocess_output(pipe):
-    for line in iter(pipe.readline, b''): # b'\n'-separated lines
-        log.info('got line from subprocess: %r', line)
-
 def append_arc(filename):
     path = Path(filename)
     return path.with_name(f"{path.stem}.arc{path.suffix}")
