@@ -44,7 +44,8 @@ def arc_welder(source_file, des_file):
         log_subprocess_output(arc_process.stdout)
     exitcode = arc_process.wait()
     log.info(f"ArcWelder exit code: {exitcode}")
-    #if exitcode == 0:
+    if exitcode == 0:
+        result = subprocess.run(['rm', '-f', f"{source_file}"])
         #time.sleep(5)
         #log.info(f"Deleting source file: {source_file}")
         #os.remove(source_file)
