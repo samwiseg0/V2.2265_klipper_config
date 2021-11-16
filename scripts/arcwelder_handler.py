@@ -4,7 +4,6 @@
 import os
 import time
 import logging
-from io import StringIO
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
@@ -34,7 +33,7 @@ def log_subprocess_output(pipe):
     for line in iter(pipe.readline, b''): # b'\n'-separated lines
         log.info('got line from subprocess: %r', line)
 
-def append_filename(filename):
+def append_arc(filename):
     path = Path(filename)
     return path.with_name(f"{path.stem}.arc{path.suffix}")
 
@@ -58,7 +57,7 @@ def arc_welder(source_file, des_file):
 def arc_trigger(event):
     log.info(f"Event: {event}")
     log.info(f"Proccessing {event.src_path}")
-    arc_welder(f"{event.src_path}", append_filename(event.src_path))
+    arc_welder(f"{event.src_path}", append_arc(event.src_path))
 
 if __name__ == "__main__":
     log.info("Starting ArcWelder Hander...")
