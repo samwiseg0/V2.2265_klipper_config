@@ -4,14 +4,15 @@
 import os
 import time
 import logging
-from subprocess import Popen, PIPE, STDOUT
+from io import StringIO
+from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 from pathlib import Path
 
 
 path = '/home/pi/gcode_files'
-go_recursively = False
+go_recursively = True
 patterns = ['*.gcode']
 ignore_patterns = ['*.arc.gcode']
 ignore_directories = False
@@ -31,7 +32,7 @@ file_observer = Observer()
 
 def log_subprocess_output(pipe):
     for line in iter(pipe.readline, b''): # b'\n'-separated lines
-        log.info("{}".format(line))
+        log.info('got line from subprocess: %r', line)
 
 def append_filename(filename):
     path = Path(filename)
@@ -39,20 +40,23 @@ def append_filename(filename):
 
 def arc_welder(source_file, des_file):
     time.sleep(1)
-    arc_process = Popen([f"{arc_welder_location}", f"{source_file}", f"{des_file}"], stdout=PIPE, stderr=STDOUT)
+    command = f"{arc_welder_location} {source_file} {des_file}"
+    log.info("Spawning command:{}".format(command))
+    arc_process = Popen(command, stdout=PIPE, stderr=STDOUT, shell=True)
     with arc_process.stdout:
-        log_subprocess_output(arc_process.stdout)
-    exitcode = arc_process.wait()
-    log.info(f"ArcWelder exit code: {exitcode}")
-    if exitcode == 0:
-        result = subprocess.run(['rm', '-f', f"{source_file}"])
-        #time.sleep(5)
-        #log.info(f"Deleting source file: {source_file}")
-        #os.remove(source_file)
-    #else:
-        #log.error(f"ArcWlder Failed! Exit code: {exitcode}")
+        try:
+            for line in iter(arc_process.stdout.readline, b''):
+                log.info(line.decode("utf-8").strip())
+        except CalledProcessError as e:
+            log.error(f"{str(e)}")
+    try:
+        log.info("Deleting file: {}".format(source_file))
+        os.remove(f"{source_file}")
+    except Exception as e:
+        log.eror("Error deleting file: {}".format(e))
 
-def on_closed(event):
+def arc_trigger(event):
+    log.info(f"Event: {event}")
     log.info(f"Proccessing {event.src_path}")
     arc_welder(f"{event.src_path}", append_filename(event.src_path))
 
@@ -60,7 +64,8 @@ if __name__ == "__main__":
     log.info("Starting ArcWelder Hander...")
     file_watch = PatternMatchingEventHandler(patterns, ignore_patterns, ignore_directories, case_sensitive)
     ## TRIGGERS
-    file_watch.on_any_event = on_closed
+    file_watch.on_created = arc_trigger
+    #file_watch.on_closed = arc_trigger
     #file_watch.on_moved = arc_trigger
     file_observer.schedule(file_watch, path, recursive=go_recursively)
     file_observer.start()
