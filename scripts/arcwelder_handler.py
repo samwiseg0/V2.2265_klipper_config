@@ -18,6 +18,7 @@ ignore_directories = True
 case_sensitive = False
 arc_welder_location = '/home/pi/bin/ArcWelder'
 log_location = '/tmp/arc_welder.log'
+delete_source = True
 
 # Set up the log file
 logging.basicConfig(
@@ -44,11 +45,14 @@ def arc_welder(source_file, des_file):
                 log.info(line.decode("utf-8").strip())
         except CalledProcessError as e:
             log.error(f"{str(e)}")
-    try:
-        log.info("Deleting file: {}".format(source_file))
-        os.remove(f"{source_file}")
-    except Exception as e:
-        log.eror("Error deleting file: {}".format(e))
+    if delete_source:
+        try:
+            log.info("Deleting file: {}".format(source_file))
+            os.remove(f"{source_file}")
+        except Exception as e:
+            log.error("Error deleting file: {}".format(e))
+    else:
+        log.info("Keeping source file: {}".format(source_file))
 
 def arc_trigger(event):
     log.info(f"Event: {event}")
