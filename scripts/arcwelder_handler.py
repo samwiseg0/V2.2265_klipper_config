@@ -13,7 +13,7 @@ from pathlib import Path
 path = '/home/pi/gcode_files'
 go_recursively = True
 patterns = ['*.gcode']
-ignore_patterns = ['*.arc.gcode']
+ignore_patterns = ['*.arcw.gcode', '*noarc*.gcode']
 ignore_directories = True
 case_sensitive = False
 arc_welder_location = '/home/pi/bin/ArcWelder'
@@ -32,7 +32,7 @@ file_observer = Observer()
 
 def append_arc(filename):
     path = Path(filename)
-    return path.with_name(f"{path.stem}.arc{path.suffix}")
+    return path.with_name(f"{path.stem}.arcw{path.suffix}")
 
 def arc_welder(source_file, des_file):
     time.sleep(1)
