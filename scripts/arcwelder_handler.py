@@ -8,6 +8,7 @@ from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 from pathlib import Path
+from logging.handlers import RotatingFileHandler
 
 
 path = '/home/pi/gcode_files'
@@ -21,10 +22,20 @@ log_location = '/tmp/arc_welder.log'
 delete_source = True
 
 # Set up the log file
-logging.basicConfig(
+rfh = logging.handlers.RotatingFileHandler(
     filename=log_location,
-    level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s - %(message)s'
+    mode='a',
+    maxBytes=5*1024*1024,
+    backupCount=2,
+    encoding=None,
+    delay=0
+)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='[%(asctime)s] %(levelname)s - %(message)s',
+    handlers=[
+        rfh
+    ]
 )
 log = logging.getLogger('ArcWelder')
 

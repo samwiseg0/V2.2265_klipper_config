@@ -13,6 +13,7 @@ import requests
 import json
 import logging
 from time import sleep
+from logging.handlers import RotatingFileHandler
 
 ## Moonraker setup
 moonraker_url = "http://localhost:7125"
@@ -60,7 +61,7 @@ logging.basicConfig(
         rfh
     ]
 )
-log = logging.getLogger('GPIO_Buttons'))
+log = logging.getLogger('GPIO_Buttons')
 
 class Timer:
     def __init__(self, timeout, callback):
