@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """
 Manage klipper/moonraker with asyncio and GPIOs.
 """
@@ -17,7 +19,7 @@ moonraker_url = "http://localhost:7125"
 power_device = "MCU"
 shutdown_macro = "POWER_OFF_MCU"
 request_header = {'X-Api-Key': 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'}
-## GPIO setup
+# GPIO setup
 green = 21
 front_red = 20
 blue = 16
@@ -43,12 +45,22 @@ state_lookup = {
 bouncetime = 1000  # in ms
 
 # Set up the log file
-logging.basicConfig(
+rfh = logging.handlers.RotatingFileHandler(
     filename=log_location,
-    level=logging.DEBUG,
-    format='[%(asctime)s] %(levelname)s - %(message)s'
+    mode='a',
+    maxBytes=5*1024*1024,
+    backupCount=2,
+    encoding=None,
+    delay=0
 )
-log = logging.getLogger('GPIO_Buttons')
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='[%(asctime)s] %(levelname)s - %(message)s',
+    handlers=[
+        rfh
+    ]
+)
+log = logging.getLogger('GPIO_Buttons'))
 
 class Timer:
     def __init__(self, timeout, callback):
@@ -75,6 +87,16 @@ def get_klipper_state():
         klipper_state = klipper_info['result']['state']
     log.debug("Current klipper state is {}".format(klipper_state.upper()))
     return klipper_state.lower()
+
+def get_printing_state():
+    printing_state = ''
+    klipper_info = requests.get('{}/printer/objects/query?display_status&print_stats'.format(moonraker_url), headers=request_header).json()
+    try:
+        printing_state = klipper_info['result']['status']['print_stats']['state'].lower()
+    except Exception as e:
+        log.error("Could not get printing state Error: {}".format(e))
+    log.debug("Current printing state is {}".format(printing_state.upper()))
+    return printing_state
 
 def mcu_startup():
     log.debug("MCU startup called")
@@ -149,7 +171,8 @@ def button_pushed(gpio):
         log.debug("Button {} was triggered but is not being pressed".format(gpio_lookup[gpio]))
     else:
         klippy_state = get_klipper_state()
-        if klippy_state == "ready":
+        printing_state = get_printing_state()
+        if klippy_state == "ready" and printing_state != 'printing':
             if gpio == front_red:
                 log.info("Front Red button was triggered!")
                 loop.call_soon_threadsafe(front_red_action)
@@ -162,10 +185,13 @@ def button_pushed(gpio):
             if gpio == side_red:
                 log.info("Side Red button was triggered!")
                 loop.call_soon_threadsafe(mcu_shutdown)
-        elif klippy_state == "idle":
+        elif printing_state == 'standby' or printing_state == 'complete':
             if gpio == blue:
                 log.info("Blue button was triggered!")
                 loop.call_soon_threadsafe(blue_action)
+            if gpio == side_red:
+                log.info("Side Red button was triggered!")
+                loop.call_soon_threadsafe(mcu_shutdown)
         elif klippy_state == "shutdown" or "service unavailable":
             if gpio == side_red:
                 loop.call_soon_threadsafe(printer_startup)
@@ -209,4 +235,3 @@ try:
 
 except:
     log.error("Error:", sys.exc_info()[0])
-
