@@ -31,7 +31,7 @@ rfh = logging.handlers.RotatingFileHandler(
     delay=0
 )
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='[%(asctime)s] %(levelname)s - %(message)s',
     handlers=[
         rfh
@@ -165,7 +165,7 @@ def update_wled_progress(percent_complete):
       ]
     }
     sender = requests.post(wled_host, headers=wled_headers, json=wled_payload)
-    log.debug('Sending upate to WLED...')
+    log.info('Sending upate to WLED. Progress: {}%'.format(percent_complete))
 
 def get_printing_state():
     print_progress = 0
@@ -179,10 +179,10 @@ def get_printing_state():
                 log.error("Could not get print progress Error: {}".format(e))
     except Exception as e:
         log.error("Could not get printing state Error: {}".format(e))
-    log.debug("Current printing state is {}".format(printing_state.upper()))
-    log.debug("Current print completion is {}%".format(round((print_progress * 100))))
+    log.info("Printing State: {} Print Completion: {}%".format(printing_state.upper(), round((print_progress * 100))))
     return printing_state, round((print_progress * 100))
 
+log.info('Starting Print Progress WLED Handler...')
 while True:
     state = get_printing_state()
     if state[0] == 'printing':
