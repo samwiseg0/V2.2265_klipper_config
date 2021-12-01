@@ -215,7 +215,7 @@ def button_pushed(gpio):
                                                                                                     klippy_state.upper(),
                                                                                                     printing_state.upper()
                                                                                                     ))
-                                                                                                    
+
 def exit_handler():
     log.info('Exit Handler')
     GPIO.cleanup()
