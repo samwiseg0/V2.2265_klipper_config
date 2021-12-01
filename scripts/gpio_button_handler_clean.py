@@ -169,7 +169,7 @@ def button_pushed(gpio):
         return  # should not come to this
     button_state = read_button_state(gpio, 0.10)
     if button_state:
-        log.debug("Button {} was triggered but is not being pressed".format(gpio_lookup[gpio]))
+        log.info("Button {} was triggered but is not being pressed".format(gpio_lookup[gpio]))
     else:
         klippy_state = get_klipper_state()
         printing_state = get_printing_state()
@@ -186,20 +186,28 @@ def button_pushed(gpio):
             if gpio == side_red:
                 log.info("Side Red button was triggered!")
                 loop.call_soon_threadsafe(mcu_shutdown)
-        elif printing_state == 'standby' or printing_state == 'complete':
+        elif klippy_state == "ready" and printing_state in ['standby', 'complete']:
             if gpio == blue:
                 log.info("Blue button was triggered!")
                 loop.call_soon_threadsafe(blue_action)
             if gpio == side_red:
                 log.info("Side Red button was triggered!")
                 loop.call_soon_threadsafe(mcu_shutdown)
-        elif klippy_state == "shutdown" or "service unavailable":
+        elif klippy_state == "ready" and printing_state == 'printing':
+            log.info("Button {} was pressed. Ignoring! Klipper State: {} Printer State: {}".format(
+                                                                                                   gpio_lookup[gpio],
+                                                                                                   klippy_state.upper(),
+                                                                                                   printing_state.upper()
+                                                                                                   ))
+        elif klippy_state in ['shutdown', 'service unavailable']:
             if gpio == side_red:
                 loop.call_soon_threadsafe(printer_startup)
-            else:
-                log.info("Klipper is in {} state. Button {} was pressed. Ignoring!".format(gpio_lookup[gpio], klippy_state.upper()))
         else:
-            log.info("Klipper is in {} state. Button {} was pressed. Ignoring!".format(gpio_lookup[gpio], klippy_state.upper()))
+            log.info("Button {} was pressed. Ignoring! KLIPPER_STATE: {} PRINTING_STATE: {}".format(
+                                                                                                    gpio_lookup[gpio],
+                                                                                                    klippy_state.upper(),
+                                                                                                    printing_state.upper()
+                                                                                                    ))
 
 def exit_handler():
     log.info('Exit Handler')
