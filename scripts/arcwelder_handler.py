@@ -20,6 +20,8 @@ case_sensitive = False
 arc_welder_location = '/home/pi/bin/ArcWelder'
 log_location = '/tmp/arc_welder.log'
 delete_source = True
+klipper_estimator_location = '/home/pi/klipper_estimator/target/release/klipper_estimator'
+moonraker_location = 'http://localhost'
 
 # Set up the log file
 rfh = logging.handlers.RotatingFileHandler(
@@ -45,6 +47,18 @@ def append_arc(filename):
     path = Path(filename)
     return path.with_name(f"{path.stem}.arcw{path.suffix}")
 
+def klipper_estimator(source_file):
+    command = f"\042{klipper_estimator_location}\042 --config_moonraker_url \042{moonraker_location}\042 post-process \042{source_file}\042"
+    log.info("Spawning command:{}".format(command))
+    kest_process = Popen(command, stdout=PIPE, stderr=STDOUT, shell=True)
+    with kest_process.stdout:
+        try:
+            for line in iter(arc_process.stdout.readline, b''):
+                log.info(line.decode("utf-8").strip())
+        except CalledProcessError as e:
+            log.error(f"{str(e)}")
+    arc_welder(f"{source_file}", append_arc(source_file))
+
 def arc_welder(source_file, des_file):
     time.sleep(1)
     command = f"\042{arc_welder_location}\042 \042{source_file}\042 \042{des_file}\042"
@@ -68,7 +82,8 @@ def arc_welder(source_file, des_file):
 def arc_trigger(event):
     log.info(f"Event: {event}")
     log.info(f"Proccessing {event.src_path}")
-    arc_welder(f"{event.src_path}", append_arc(event.src_path))
+    klipper_estimator(f"{event.src_path}")
+
 
 if __name__ == "__main__":
     log.info("Starting ArcWelder Hander...")
