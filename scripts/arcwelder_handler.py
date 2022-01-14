@@ -22,6 +22,7 @@ log_location = '/tmp/arc_welder.log'
 delete_source = True
 klipper_estimator_location = '/home/pi/klipper_estimator/target/release/klipper_estimator'
 moonraker_location = 'http://localhost'
+process_estimate = True
 
 # Set up the log file
 rfh = logging.handlers.RotatingFileHandler(
@@ -53,7 +54,8 @@ def append_arc(filename):
     return path.with_name(f"{path.stem}.arcw{path.suffix}")
 
 def arc_welder(source_file, des_file):
-    klipper_estimator(source_file)
+    if process_estimate:
+        klipper_estimator(source_file)
     time.sleep(1)
     command = f"\042{arc_welder_location}\042 \042{source_file}\042 \042{des_file}\042"
     log.info("Spawning command:{}".format(command))
