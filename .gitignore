@@ -8,6 +8,7 @@
 *.log
 *.log.*
 *.sig
+*.bkp
 moonraker.conf
 mooncord.json
 
