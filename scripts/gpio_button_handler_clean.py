@@ -156,10 +156,10 @@ def send_macro(macro):
         log.info("Error sending macro to klipper Error: {}".format(e))
 
 def front_red_action():
-    return
+    send_macro('HOT_UNLOAD')
 
 def green_action():
-    return
+    send_macro('LOAD_SWAP')
 
 def blue_action():
     send_macro('PREHEAT_ABS_PC')
@@ -187,25 +187,18 @@ def button_pushed(gpio):
             if gpio == side_red:
                 log.info("Side Red button was triggered!")
                 loop.call_soon_threadsafe(mcu_shutdown)
-        elif klippy_state == "ready" and printing_state == 'printing':
-            log.info("Button {} was pressed. Ignoring! Klipper State: {} Printer State: {}".format(
-                                                                                                   gpio_lookup[gpio],
-                                                                                                   klippy_state.upper(),
-                                                                                                   printing_state.upper()
-                                                                                                   ))
-        elif klippy_state == "ready" and printing_state != 'printing':
             if gpio == front_red:
                 log.info("Front Red button was triggered!")
                 loop.call_soon_threadsafe(front_red_action)
             if gpio == green:
                 log.info("Green button was triggered!")
                 loop.call_soon_threadsafe(green_action)
-            if gpio == blue:
-                log.info("Blue button was triggered!")
-                loop.call_soon_threadsafe(blue_action)
-            if gpio == side_red:
-                log.info("Side Red button was triggered!")
-                loop.call_soon_threadsafe(mcu_shutdown)
+        elif klippy_state == "ready" and printing_state == 'printing':
+            log.info("Button {} was pressed. Ignoring! Klipper State: {} Printer State: {}".format(
+                                                                                                   gpio_lookup[gpio],
+                                                                                                   klippy_state.upper(),
+                                                                                                   printing_state.upper()
+                                                                                                   ))
         elif klippy_state in ['shutdown', 'service unavailable']:
             if gpio == side_red:
                 loop.call_soon_threadsafe(printer_startup)
