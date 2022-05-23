@@ -20,7 +20,7 @@ log_location = '/tmp/lights_progress.log'
 wled_host = 'http://192.168.20.251/json/state'
 wled_headers = {'content-type': 'application/json'}
 check_interval = 10
-start_delay = 300
+start_delay = 100
 
 # Set up the log file
 rfh = logging.handlers.RotatingFileHandler(
