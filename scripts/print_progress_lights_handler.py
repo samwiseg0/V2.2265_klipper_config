@@ -20,6 +20,7 @@ log_location = '/tmp/lights_progress.log'
 wled_host = 'http://192.168.20.251/json/state'
 wled_headers = {'content-type': 'application/json'}
 check_interval = 10
+start_delay = 300
 
 # Set up the log file
 rfh = logging.handlers.RotatingFileHandler(
@@ -172,7 +173,7 @@ def get_printing_state():
     klipper_info = requests.get('{}/printer/objects/query?display_status&print_stats'.format(moonraker_url), headers=request_header).json()
     try:
         printing_state = klipper_info['result']['status']['print_stats']['state'].lower()
-        total_duration = klipper_info['result']['status']['print_stats']['total_duration']
+        print_duration = klipper_info['result']['status']['print_stats']['print_duration']
         if printing_state == 'printing':
             try:
                 print_progress = klipper_info['result']['status']['display_status']['progress']
@@ -180,8 +181,8 @@ def get_printing_state():
                 log.error("Could not get print progress Error: {}".format(e))
     except Exception as e:
         log.error("Could not get printing state Error: {}".format(e))
-    log.info("Printing State: {} Print Completion: {}% Durration: {}".format(printing_state.upper(), round((print_progress * 100)), round(total_duration)))
-    return printing_state, round((print_progress * 100)), total_duration
+    log.info("Printing State: {} Print Completion: {}% Durration: {}".format(printing_state.upper(), round((print_progress * 100)), round(print_duration)))
+    return printing_state, round((print_progress * 100)), print_duration
 
 log.info('Starting Print Progress WLED Handler...')
 
