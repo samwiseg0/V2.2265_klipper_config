@@ -172,6 +172,7 @@ def get_printing_state():
     klipper_info = requests.get('{}/printer/objects/query?display_status&print_stats'.format(moonraker_url), headers=request_header).json()
     try:
         printing_state = klipper_info['result']['status']['print_stats']['state'].lower()
+        total_duration = klipper_info['result']['status']['print_stats']['total_duration']
         if printing_state == 'printing':
             try:
                 print_progress = klipper_info['result']['status']['display_status']['progress']
@@ -179,16 +180,46 @@ def get_printing_state():
                 log.error("Could not get print progress Error: {}".format(e))
     except Exception as e:
         log.error("Could not get printing state Error: {}".format(e))
-    log.info("Printing State: {} Print Completion: {}%".format(printing_state.upper(), round((print_progress * 100))))
-    return printing_state, round((print_progress * 100))
+    log.info("Printing State: {} Print Completion: {}% Durration: {}".format(printing_state.upper(), round((print_progress * 100)), round(total_duration)))
+    return printing_state, round((print_progress * 100)), total_duration
 
 log.info('Starting Print Progress WLED Handler...')
+
+last_percent = 0
+
 while True:
     state = get_printing_state()
-    if state[0] == 'printing':
-        update_wled_progress(state[1])
-        log.debug('Checking again in {} seconds...'.format(check_interval))
-        sleep(check_interval)
+    current_percent = state[1]
+    printing_state = state[0]
+    total_duration = state[2]
+
+    if printing_state == 'printing' and total_duration > start_delay:
+        if  current_percent == last_percent:
+          log.info('Skip WLED update as Current: {}% = Last Percent {}%...'.format(state[1], last_percent))
+          sleep(check_interval)
+          log.debug('Checking again in {} seconds...'.format(check_interval))
+        elif current_percent < last_percent:
+          log.info('Update WLED update as Current: {}% > Last Percent {}%...'.format(state[1], last_percent))
+          last_percent = current_percent
+          update_wled_progress(current_percent)
+          log.debug('Checking again in {} seconds...'.format(check_interval))
+          sleep(check_interval)
+        elif current_percent > last_percent and last_percent != 100:
+          log.info('Update WLED update as Current: {}% = Last Percent {}%...'.format(state[1], last_percent))
+          update_wled_progress(current_percent)
+          last_percent = current_percent
+          log.debug('Checking again in {} seconds...'.format(check_interval))
+          sleep(check_interval)
+        elif current_percent == 100 and last_percent <= 99:
+          log.info('Update WLED update as Current: {}% = Last Percent {}%...'.format(state[1], last_percent))
+          update_wled_progress(current_percent)
+          last_percent = current_percent
+          log.debug('Checking again in {} seconds...'.format(check_interval))
+          sleep(check_interval)
+        else:
+          log.info('No logic match... Current: {}% = Last Percent {}%...'.format(state[1], last_percent))
+          log.debug('No action taken... checking again in {} seconds...'.format(check_interval))
+          sleep(check_interval)
     else:
         log.debug('Checking again in {} seconds...'.format(check_interval))
         sleep(check_interval)
