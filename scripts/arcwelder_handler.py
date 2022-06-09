@@ -14,7 +14,7 @@ from logging.handlers import RotatingFileHandler
 path = '/home/pi/gcode_files'
 go_recursively = True
 patterns = ['*.gcode']
-ignore_patterns = ['*.arcw.gcode', '*noarc*.gcode']
+ignore_patterns = ['*.arcw.gcode', '*noarc*.gcode', '.estimate.*.gcode']
 ignore_directories = True
 case_sensitive = False
 log_location = '/tmp/arc_welder.log'
