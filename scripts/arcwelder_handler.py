@@ -11,6 +11,7 @@ from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
 # Global Settings
+filename_suffix = 'arcw'
 path = '/home/pi/gcode_files'
 go_recursively = True
 patterns = ['*.gcode']
@@ -20,6 +21,7 @@ case_sensitive = False
 log_location = '/tmp/arc_welder.log'
 
 # Arc Welder Settings
+process_arcw = True
 arc_welder_location = '/home/pi/bin/ArcWelder'
 delete_source = True
 
@@ -63,21 +65,7 @@ def klipper_estimator(source_file):
     log.info("Spawning command:{}".format(command))
     kest_process = Popen(command, stdout=PIPE, stderr=STDOUT, shell=True).wait()
 
-def append_arc(filename):
-    path = Path(filename)
-    return path.with_name(f"{path.stem}.arcw{path.suffix}")
-
-def file_processor(source_file, des_file):
-    # Spawn cancel objects processor if enabled
-    if process_cancellation:
-        cancelobject_preprocessor(source_file)
-
-    # Spawn klipper estimator if enabled
-    if process_estimate:
-        klipper_estimator(source_file)
-    
-    time.sleep(1)
-    
+def arcw_processor(source_file, des_file):
     # Spawn arc welder
     command = f"\042{arc_welder_location}\042 \042{source_file}\042 \042{des_file}\042"
     log.info("Spawning command:{}".format(command))
@@ -90,6 +78,23 @@ def file_processor(source_file, des_file):
                 log.info(line.decode("utf-8").strip())
         except CalledProcessError as e:
             log.error(f"{str(e)}")
+
+def add_file_suffix(filename):
+    path = Path(filename)
+    return path.with_name(f"{path.stem}.{filename_suffix}{path.suffix}")
+
+def file_processor(source_file, des_file):
+    # Spawn cancel objects processor if enabled
+    if process_cancellation:
+        cancelobject_preprocessor(source_file)
+
+    # Spawn klipper estimator if enabled
+    if process_estimate:
+        klipper_estimator(source_file)
+    
+    # Spawn arcwelder if enabled
+    if process_arcw:
+        arcw_processor(source_file, des_file)
 
     # Delete the source file if enabled
     if delete_source:
@@ -104,12 +109,12 @@ def file_processor(source_file, des_file):
 def trigger_spawn(event):
     log.info(f"Event: {event}")
     log.info(f"Proccessing {event.src_path}")
-    file_processor(f"{event.src_path}", append_arc(event.src_path))
+    file_processor(f"{event.src_path}", add_file_suffix(event.src_path))
 
 if __name__ == "__main__":
     log.info("Starting ArcWelder Hander...")
     file_watch = PatternMatchingEventHandler(patterns, ignore_patterns, ignore_directories, case_sensitive)
-    ## Triggers
+    ## File processing triggers
     file_watch.on_created = trigger_spawn
     #file_watch.on_closed = trigger_spawn
     #file_watch.on_moved = trigger_spawn
