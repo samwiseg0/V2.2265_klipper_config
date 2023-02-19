@@ -12,7 +12,7 @@ from logging.handlers import RotatingFileHandler
 
 # Global Settings
 filename_suffix = 'arcw'
-path = '/home/pi/gcode_files'
+path = '/home/pi/printer_data/gcodes'
 go_recursively = True
 patterns = ['*.gcode']
 ignore_patterns = ['*.arcw.gcode', '*noarc*.gcode', '.estimate.*.gcode']
