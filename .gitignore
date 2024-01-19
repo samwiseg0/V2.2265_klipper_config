@@ -11,6 +11,7 @@
 *.bkp
 moonraker.conf
 mooncord.json
+mooncord.cfg
 
 auto_save/
 pkg/
