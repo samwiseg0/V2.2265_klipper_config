@@ -12,8 +12,12 @@
 moonraker.conf
 mooncord.json
 mooncord.cfg
+mainsail.cfg
+sonar.conf
+timelapse.cfg
 
 auto_save/
 pkg/
 src/
 adxl_results/
+K-ShakeTune/
