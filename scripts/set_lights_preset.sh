@@ -13,4 +13,3 @@
 # BUSY = 9
 
 /usr/bin/curl "http://192.168.20.44/win&PL=$1"
-/usr/bin/curl "http://192.168.20.251/win&PL=$1"

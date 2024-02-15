@@ -22,18 +22,18 @@ log_location = '/tmp/arc_welder.log'
 
 # Arc Welder Settings
 process_arcw = True
-arc_welder_location = '/home/pi/bin/ArcWelder'
+arc_welder_location = '/home/pi/ArcWelderLib/build/ArcWelderConsole/ArcWelder'
 delete_source = True
 
 # Klipper Estimator Settings
 process_estimate = True
-klipper_estimator_location = '/home/pi/klipper_estimator/target/release/klipper_estimator'
+klipper_estimator_location = '/home/pi/klipper_estimator'
 moonraker_location = 'http://localhost'
 
 # Cancel Object Processor Settings
 process_cancellation = True
 python3_location = '/usr/bin/python3'
-preprocess_cancellation = '/home/pi/cancelobject-preprocessor/preprocess_cancellation.py'
+preprocess_cancellation = '/home/pi/preprocess_cancellation/preprocess_cancellation.py'
 
 # Set up the log file
 rfh = logging.handlers.RotatingFileHandler(
